@@ -1,7 +1,9 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 const schemaNewContact = Joi.object({
-  name: Joi.string().min(2).max(50).required(),
+  name: Joi.string()
+    .regex(/^([a-zA-Z]{2,}\s[a-zA-Z]{1,}'?-?[a-zA-Z]{2,}\s?([a-zA-Z]{1,})?)$/)
+    .required(),
   email: Joi.string()
     .email({
       minDomainSegments: 2,
@@ -10,10 +12,15 @@ const schemaNewContact = Joi.object({
   phone: Joi.string()
     .regex(/^\(\d{3}\) \d{3}-\d{4}$/)
     .required(),
+  favorite: Joi.boolean().optional(),
 });
 
+// /^([A-Z]{1}[a-z]{1,23})$/
+
 const schemaUpdatedContact = Joi.object({
-  name: Joi.string().min(2).max(50).required(),
+  name: Joi.string()
+    .regex(/^([a-zA-Z]{2,}\s[a-zA-Z]{1,}'?-?[a-zA-Z]{2,}\s?([a-zA-Z]{1,})?)$/)
+    .required(),
   email: Joi.string()
     .email({
       minDomainSegments: 2,
@@ -22,7 +29,12 @@ const schemaUpdatedContact = Joi.object({
   phone: Joi.string()
     .regex(/^\(\d{3}\) \d{3}-\d{4}$/)
     .optional(),
-  age: Joi.number().max(120).optional(),
+  favorite: Joi.boolean().optional(),
+});
+
+const schemaStatusFavoiteContact = Joi.object({
+  // favorite: Joi.boolean().required(),
+  favorite: Joi.boolean(),
 });
 
 const validate = async (schema, body, next) => {
@@ -30,7 +42,7 @@ const validate = async (schema, body, next) => {
     await schema.validateAsync(body);
     next();
   } catch (err) {
-    next({ status: 400, message: `Field: ${err.message.replace(/"/g, "")}` });
+    next({ status: 400, message: `Field: ${err.message.replace(/"/g, '')}` });
   }
 };
 
@@ -40,4 +52,8 @@ module.exports.validateNewContact = (req, _res, next) => {
 
 module.exports.validateUpdatedContact = (req, _res, next) => {
   return validate(schemaUpdatedContact, req.body, next);
+};
+
+module.exports.validateStatusFavoriteContact = (req, _res, next) => {
+  return validate(schemaStatusFavoiteContact, req.body, next);
 };

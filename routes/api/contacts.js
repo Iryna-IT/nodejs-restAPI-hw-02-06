@@ -1,102 +1,118 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const Contacts = require("../../model/contacts");
-const { validateNewContact, validateUpdatedContact } = require("./validation");
+const Contacts = require('../../model/contacts');
+const {
+  validateNewContact,
+  validateUpdatedContact,
+  validateStatusFavoriteContact,
+} = require('./validation');
 
-router.get("/", async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const contacts = await Contacts.listContacts();
     return res
       .status(200)
-      .json({ status: "success", code: 200, data: { contacts } });
+      .json({ status: 'success', code: 200, data: { contacts } });
   } catch (error) {
     next(error);
   }
 });
 
-router.get("/:contactId", async (req, res, next) => {
+router.get('/:contactId', async (req, res, next) => {
   try {
     const contact = await Contacts.getContactById(req.params.contactId);
     if (contact) {
       return res
         .status(200)
-        .json({ status: "success", code: 200, data: { contact } });
+        .json({ status: 'success', code: 200, data: { contact } });
     } else {
       return res
         .status(404)
-        .json({ status: "error", code: 404, message: "Not Found" });
+        .json({ status: 'error', code: 404, message: 'Not Found' });
     }
   } catch (error) {
     next(error);
   }
 });
 
-router.post("/", validateNewContact, async (req, res, next) => {
+router.post('/', validateNewContact, async (req, res, next) => {
   try {
     const contact = await Contacts.addContact(req.body);
+    console.log(contact);
     return res
       .status(201)
-      .json({ status: "success", code: 201, data: { contact } });
+      .json({ status: 'success', code: 201, data: { contact } });
   } catch (error) {
     next(error);
   }
 });
 
-router.delete("/:contactId", async (req, res, next) => {
+router.delete('/:contactId', async (req, res, next) => {
   try {
     const contact = await Contacts.removeContact(req.params.contactId);
     if (contact) {
       return res.status(200).json({
-        status: "success",
+        status: 'success',
         code: 200,
-        message: "contact deleted",
+        message: 'contact deleted',
         data: { contact },
       });
     } else {
       return res
         .status(404)
-        .json({ status: "error", code: 404, message: "Not Found" });
+        .json({ status: 'error', code: 404, message: 'Not Found' });
     }
   } catch (error) {
     next(error);
   }
 });
 
-router.patch("/:contactId", validateUpdatedContact, async (req, res, next) => {
-  try {
-    const contact = await Contacts.updateContact(
-      req.params.contactId,
-      req.body
-    );
-    if (contact) {
-      return res
-        .status(200)
-        .json({ status: "success", code: 200, data: { contact } });
-    } else {
-      return res
-        .status(404)
-        .json({ status: "error", code: 404, message: "Not Found" });
+router.patch(
+  '/:contactId/favorite',
+  validateStatusFavoriteContact,
+  async (req, res, next) => {
+    try {
+      if (Object.keys(req.body).length === 0) {
+        return res.status(404).json({
+          status: 'error',
+          code: 404,
+          message: 'missing field favorite',
+        });
+      } else {
+        const contact = await Contacts.updateStatusContact(
+          req.params.contactId,
+          req.body,
+        );
+        if (contact) {
+          return res
+            .status(200)
+            .json({ status: 'success', code: 200, data: { contact } });
+        }
+        return res
+          .status(404)
+          .json({ status: 'error', code: 404, message: 'Not Found' });
+      }
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
-router.put("/:contactId", validateUpdatedContact, async (req, res, next) => {
+router.put('/:contactId', validateUpdatedContact, async (req, res, next) => {
   try {
     const contact = await Contacts.updateContact(
       req.params.contactId,
-      req.body
+      req.body,
     );
     if (contact) {
       return res
         .status(200)
-        .json({ status: "success", code: 200, data: { contact } });
+        .json({ status: 'success', code: 200, data: { contact } });
     } else {
       return res
         .status(404)
-        .json({ status: "error", code: 404, message: "Not Found" });
+        .json({ status: 'error', code: 404, message: 'Not Found' });
     }
   } catch (error) {
     next(error);
