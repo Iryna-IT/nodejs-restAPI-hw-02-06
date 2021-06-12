@@ -1,17 +1,49 @@
 const Contact = require('./schemas/contact');
 
-const listContacts = async () => {
-  const results = await Contact.find({});
-  return results;
+const listContacts = async (userId, query) => {
+  const {
+    page = 1,
+    limit = 5,
+    offset = [(page - 1) * limit],
+    sortBy,
+    sortByDesc,
+    filter, // name|phone|favorite
+    favorite = null,
+  } = query;
+
+  const optionsSearch = { owner: userId };
+  if (favorite !== null) {
+    optionsSearch.favorite = favorite;
+  }
+
+  const results = await Contact.paginate(optionsSearch, {
+    page,
+    limit,
+    offset,
+    select: filter ? filter.split('|').join(' ') : '', // 'name phone favorite'
+    sort: {
+      ...(sortBy ? { [`${sortBy}`]: 1 } : {}),
+      ...(sortByDesc ? { [`${sortByDesc}`]: -1 } : {}),
+    },
+    populate: {
+      path: 'owner',
+      select: 'email',
+    },
+  });
+  const { docs: contacts, totalDocs: total } = results;
+  return { contacts, total, limit, offset, page };
 };
 
-const getContactById = async id => {
-  const result = await Contact.findOne({ _id: id });
+const getContactById = async (userId, id) => {
+  const result = await Contact.findOne({ _id: id, owner: userId }).populate({
+    path: 'owner',
+    select: 'email subscription -_id',
+  });
   return result;
 };
 
-const removeContact = async id => {
-  const result = await Contact.findByIdAndRemove({ _id: id });
+const removeContact = async (userId, id) => {
+  const result = await Contact.findByIdAndRemove({ _id: id, owner: userId });
   return result;
 };
 
@@ -20,10 +52,11 @@ const addContact = async body => {
   return result;
 };
 
-const updateContact = async (id, body) => {
+const updateContact = async (userId, id, body) => {
   const result = await Contact.findOneAndUpdate(
     {
       _id: id,
+      owner: userId,
     },
     { ...body },
     { new: true },
@@ -31,10 +64,11 @@ const updateContact = async (id, body) => {
   return result;
 };
 
-const updateStatusContact = async (id, body) => {
+const updateStatusContact = async (userId, id, body) => {
   const result = await Contact.findOneAndUpdate(
     {
       _id: id,
+      owner: userId,
     },
     { ...body },
     { new: true },
