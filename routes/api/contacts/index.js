@@ -8,23 +8,31 @@ const {
   validateNewContact,
   validateUpdatedContact,
   validateStatusFavoriteContact,
+  validateObjectId,
 } = require('./validation');
 
 router.get('/', guard, ctrl.getAll);
 
-router.get('/:contactId', guard, ctrl.getById);
+router.get('/:contactId', guard, validateObjectId, ctrl.getById);
 
 router.post('/', guard, validateNewContact, ctrl.create);
 
-router.delete('/:contactId', guard, ctrl.remove);
+router.delete('/:contactId', guard, validateObjectId, ctrl.remove);
 
 router.patch(
   '/:contactId/favorite',
   guard,
+  validateObjectId,
   validateStatusFavoriteContact,
   ctrl.updateFavorite,
 );
 
-router.put('/:contactId', guard, validateUpdatedContact, ctrl.update);
+router.put(
+  '/:contactId',
+  guard,
+  validateObjectId,
+  validateUpdatedContact,
+  ctrl.update,
+);
 
 module.exports = router;

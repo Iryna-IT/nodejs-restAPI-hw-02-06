@@ -28,10 +28,15 @@ const updateStatusUser = async (id, body) => {
   return result;
 };
 
+const updateAvatar = async (id, avatar, userIdImg = null) => {
+  return await User.updateOne({ _id: id }, { avatar, userIdImg });
+};
+
 module.exports = {
   findById,
   findByEmail,
   create,
   updateToken,
   updateStatusUser,
+  updateAvatar,
 };
