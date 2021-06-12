@@ -4,8 +4,7 @@ const listContacts = async (userId, query) => {
   const {
     page = 1,
     limit = 5,
-    skip = (page - 1) * limit,
-    offset = 0,
+    offset = [(page - 1) * limit],
     sortBy,
     sortByDesc,
     filter, // name|phone|favorite
@@ -20,7 +19,6 @@ const listContacts = async (userId, query) => {
   const results = await Contact.paginate(optionsSearch, {
     page,
     limit,
-    skip,
     offset,
     select: filter ? filter.split('|').join(' ') : '', // 'name phone favorite'
     sort: {
@@ -33,7 +31,7 @@ const listContacts = async (userId, query) => {
     },
   });
   const { docs: contacts, totalDocs: total } = results;
-  return { contacts, total, limit, offset, skip, page };
+  return { contacts, total, limit, offset, page };
 };
 
 const getContactById = async (userId, id) => {
