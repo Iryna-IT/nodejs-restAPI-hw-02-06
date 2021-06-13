@@ -3,6 +3,7 @@ const router = express.Router();
 
 const ctrl = require('../../../controllers/users.js');
 const guard = require('../../../helpers/guard');
+const upload = require('../../../helpers/upload');
 
 const {
   validateNewUser,
@@ -19,5 +20,7 @@ router.patch(
   validateStatusSubscriptionUser,
   ctrl.updateSubscription,
 );
+
+router.patch('/avatars', [guard, upload.single('avatar')], ctrl.avatars);
 
 module.exports = router;

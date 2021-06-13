@@ -1,8 +1,27 @@
 const jwt = require('jsonwebtoken');
+
+// Для облачного харнилища
+const cloudinary = require('cloudinary').v2;
+const { promisify } = require('util');
+
 require('dotenv').config();
 const Users = require('../model/users');
 const { HttpCode } = require('../helpers/constants');
+
+// Для локального хранилища
+// const UploadAvatar = require('../services/upload-avatars-local');
+
+const UploadAvatar = require('../services/upload-avatars-cloud');
+
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+// Для локального хранилища
+// const AVATARS_OF_USERS = process.env.AVATARS_OF_USERS;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
 
 const signup = async (req, res, next) => {
   try {
@@ -15,7 +34,7 @@ const signup = async (req, res, next) => {
       });
     }
     const newUser = await Users.create(req.body);
-    const { id, email, subscription } = newUser;
+    const { id, email, subscription, avatar } = newUser;
     return res.status(HttpCode.CREATED).json({
       status: 'success',
       code: HttpCode.CREATED,
@@ -23,6 +42,7 @@ const signup = async (req, res, next) => {
         id,
         email,
         subscription,
+        avatar,
       },
     });
   } catch (e) {
@@ -92,9 +112,46 @@ const updateSubscription = async (req, res, next) => {
   }
 };
 
+const avatars = async (req, res, next) => {
+  try {
+    const id = req.user.id;
+
+    // // Использование локального хранилища
+    // const uploads = new UploadAvatar(AVATARS_OF_USERS);
+    // const avatarUrl = await uploads.saveAvatarToStatic({
+    //   idUser: id,
+    //   pathFile: req.file.path,
+    //   nameFile: req.file.filename,
+    //   oldFile: req.user.avatar,
+    // });
+
+    const uploadCloud = promisify(cloudinary.uploader.upload);
+    const uploads = new UploadAvatar(uploadCloud);
+    const { userIdImg, avatarUrl } = await uploads.saveAvatarToCloud(
+      req.file.path,
+      req.user.userIdImg,
+    );
+    await Users.updateAvatar(id, avatarUrl, userIdImg);
+
+    // // Использование локального хранилища
+    // await Users.updateAvatar(id, avatarUrl);
+    // // Для составления avatarUrl
+    // console.log(req.hostname);
+
+    return res.json({
+      status: 'success',
+      code: HttpCode.OK,
+      data: { avatarUrl },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   signup,
   login,
   logout,
   updateSubscription,
+  avatars,
 };

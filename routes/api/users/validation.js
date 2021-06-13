@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const { Mongoose } = require('mongoose');
 const { HttpCode } = require('../../../helpers/constants');
 
 const schemaNewUser = Joi.object({
@@ -18,7 +19,7 @@ const validate = async (schema, body, next) => {
   } catch (err) {
     next({
       status: HttpCode.BAD_REQUEST,
-      message: 'Ошибка от Joi или другой библиотеки  валидации',
+      message: 'Error from Joi or another validation library',
     });
   }
 };

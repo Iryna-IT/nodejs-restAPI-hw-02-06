@@ -1,5 +1,6 @@
 const express = require('express');
 const logger = require('morgan');
+const path = require('path');
 const cors = require('cors');
 const boolParser = require('express-query-boolean');
 const helmet = require('helmet');
@@ -15,6 +16,12 @@ const app = express();
 const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
 
 app.use(helmet());
+
+// Для локального хранилища - статические ресурсы
+// require('dotenv').config();
+// const AVATARS_OF_USERS = process.env.AVATARS_OF_USERS;
+// app.use(express.static(path.join(__dirname, AVATARS_OF_USERS)));
+
 app.use(limiter);
 app.use(logger(formatsLogger));
 app.use(cors());

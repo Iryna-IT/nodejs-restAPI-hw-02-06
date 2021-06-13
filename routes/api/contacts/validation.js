@@ -1,3 +1,4 @@
+const { Mongoose } = require('mongoose');
 const Joi = require('joi');
 const { HttpCode } = require('../../../helpers/constants');
 
@@ -45,7 +46,7 @@ const validate = async (schema, body, next) => {
   } catch (err) {
     next({
       status: HttpCode.BAD_REQUEST,
-      message: 'Ошибка от Joi или другой библиотеки  валидации',
+      message: 'Error from Joi or another validation library',
       // message: `Field: ${err.message.replace(/"/g, '')}`,
     });
   }
@@ -61,4 +62,14 @@ module.exports.validateUpdatedContact = (req, _res, next) => {
 
 module.exports.validateStatusFavoriteContact = (req, _res, next) => {
   return validate(schemaStatusFavoiteContact, req.body, next);
+};
+
+module.exports.validateObjectId = (req, _res, next) => {
+  if (!Mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return next({
+      status: HttpCode.BAD_REQUEST,
+      message: 'ObjectId is not valide',
+    });
+  }
+  next();
 };
