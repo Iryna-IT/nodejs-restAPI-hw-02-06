@@ -13,6 +13,10 @@ const create = async options => {
   return await user.save();
 };
 
+const getUserByVerifyToken = async token => {
+  return await User.findOne({ verifyToken: token });
+};
+
 const updateToken = async (id, token) => {
   return await User.updateOne({ _id: id }, { token });
 };
@@ -32,11 +36,17 @@ const updateAvatar = async (id, avatar, userIdImg = null) => {
   return await User.updateOne({ _id: id }, { avatar, userIdImg });
 };
 
+const updateVerifyToken = async (id, verify, token) => {
+  return await User.updateOne({ _id: id }, { verify, verifyToken: token });
+};
+
 module.exports = {
   findById,
   findByEmail,
   create,
+  getUserByVerifyToken,
   updateToken,
   updateStatusUser,
   updateAvatar,
+  updateVerifyToken,
 };
